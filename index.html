@@ -25,9 +25,11 @@ button:focus-visible{outline:3px solid #2f6fd6;outline-offset:2px}
 .dot{display:inline-grid;place-items:center;border-radius:999px;color:#fff;font-weight:900;flex:none;width:1.6em;height:1.6em}
 .prev{margin-left:auto;display:flex;align-items:center;gap:6px;color:var(--muted);font-size:.85rem}
 .prev svg{width:28px;height:auto}
-.cards{flex:1;min-height:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(64px,1fr));gap:8px;align-content:start;overflow:auto}
+.cards{flex:1;min-height:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(72px,1fr));gap:8px;align-content:start;overflow:auto}
 .cardbtn{padding:0;border:0;background:none;border-radius:8px;min-width:0}
 .cardbtn svg{width:100%;height:auto;display:block;border-radius:6px;box-shadow:0 0 0 1px var(--line)}
+.nm{display:block;margin-top:3px;font-size:.72rem;font-weight:700;line-height:1.2;text-align:center;word-break:keep-all;overflow-wrap:anywhere}
+.prev .nm{display:inline;margin:0;font-size:.85rem}
 .empty{color:var(--muted);font-size:1rem;align-self:center;margin:auto;text-align:center}
 .ctl{display:flex;gap:6px;flex-wrap:wrap}
 .btn{border:1.5px solid var(--line);background:var(--panel);border-radius:10px;padding:7px 11px;font-weight:700;font-size:.85rem}
@@ -65,7 +67,8 @@ const CARDS=[["モーター","電気","運動",1],["電気自動車","電気","�
 const card=n=>CARDS.find(c=>c.n===n);
 const en=e=>e+"エネ";
 const dot=e=>`<span class="dot" style="background:${E[e][0]}">${E[e][1]}</span>`;
-// 印刷したカードと同じ絵（名前の帯は省く）
+// 印刷したカードと同じ絵（名前の帯は省く。名前は絵の下に文字で出す）
+const nm=c=>`<span class="nm">${c.n}</span>`;
 let uid=0;
 function art(c){
   const W=55,H=91,cy=43,r=14,id="a"+(uid++),i=c.i,o=c.o;
@@ -91,9 +94,9 @@ function halfHTML(side){
   const now=cur(), last=hist.length?card(hist[hist.length-1]):null;
   const list=(!judge&&now)?CARDS.filter(c=>c.i===now):[];
   const head=now?`${dot(now)}<span class="en">${en(now)}</span>`:`<span class="en">最初は何でも</span>`;
-  const prev=last?`<span class="prev">さっき ${art(last)}</span>`:"";
+  const prev=last?`<span class="prev">さっき ${art(last)}${nm(last)}</span>`:"";
   let body;
-  if(list.length) body=`<div class="cards">${list.map(c=>`<button class="cardbtn" data-n="${c.n}" data-side="${side}">${art(c)}</button>`).join("")}</div>`;
+  if(list.length) body=`<div class="cards">${list.map(c=>`<button class="cardbtn" data-n="${c.n}" data-side="${side}">${art(c)}${nm(c)}</button>`).join("")}</div>`;
   else body=`<div class="cards"><p class="empty">${judge?"宣言されたカードを「判定する」から押す":"「カードを登録」から最初の1枚を押す"}</p></div>`;
   const ctl=`<div class="ctl"><button class="btn" data-a="sheet" data-side="${side}">${judge?"判定する":"カードを登録"}</button>
     <button class="btn" data-a="undo">1枚もどす</button><button class="btn" data-a="reset">最初から</button>
@@ -116,13 +119,13 @@ function declare(n,side){
   const c=card(n),now=cur();
   if(now&&c.i!==now){toast(side,`変換失敗<br><small>${c.n}は${en(c.i)}から。いまは${en(now)}</small>`,false);return;}
   hist.push(n);save();render();
-  if(judge)toast(side,`OK<br><small>${en(c.i)} → ${en(c.o)}</small>`,true);
+  if(judge)toast(side,`OK<br><small>${c.n}：${en(c.i)} → ${en(c.o)}</small>`,true);
 }
 function openSheet(side){
   const host=document.getElementById(side==="top"?"hTop":"hBot");
   const sh=document.createElement("div");sh.className="sheet";
   sh.innerHTML=`<div class="bar"><span>${cur()?`いまは${en(cur())}`:"最初の1枚は何でも"}</span><button class="btn" data-a="close">とじる</button></div>`+
-    ORDER.map(e=>`<div class="grp">${dot(e)}${en(e)}から</div><div class="cards">`+CARDS.filter(c=>c.i===e).map(c=>`<button class="cardbtn" data-n="${c.n}" data-side="${side}" data-sheet="1">${art(c)}</button>`).join("")+`</div>`).join("");
+    ORDER.map(e=>`<div class="grp">${dot(e)}${en(e)}から</div><div class="cards">`+CARDS.filter(c=>c.i===e).map(c=>`<button class="cardbtn" data-n="${c.n}" data-side="${side}" data-sheet="1">${art(c)}${nm(c)}</button>`).join("")+`</div>`).join("");
   host.appendChild(sh);
 }
 document.getElementById("app").addEventListener("click",ev=>{
