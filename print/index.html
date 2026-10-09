@@ -1,0 +1,68 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>変換ダウト 版下</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@700;900&display=swap">
+<style>
+/* A4縦・エーワン マルチカード 51166（86×54を2列×5段・角丸3mm）。余白は上14mm・左19mm（パッケージの図の値） */
+@page{size:210mm 297mm;margin:0}
+html,body{margin:0;background:#fff}
+.page{position:relative;width:210mm;height:297mm;page-break-after:always;overflow:hidden}
+.slot{position:absolute;width:86mm;height:54mm}
+.slot svg{width:86mm;height:54mm;display:block}
+.guide .slot{outline:.1mm dashed #bbb}
+</style>
+<body>
+<script src="icons.js"></script>
+<script src="backs.js"></script>
+<script>
+const E={"電気":["#d9a400","電"],"熱":["#d6452b","熱"],"光":["#ef8a1f","光"],"運動":["#2f6fd6","運"],"位置":["#2e9e5b","位"],"化学":["#8a4fc7","化"]};
+const F='Zen Maru Gothic, Hiragino Maru Gothic ProN, Meiryo, sans-serif';
+const CARDS=[["モーター","電気","運動",1],["電気自動車","電気","運動",1],["ホットプレート","電気","熱",1],["アイロン","電気","熱",1],
+["蛍光灯","電気","光",1],["豆電球","電気","光",1],["LEDライト","電気","光",1],["エレベーター","電気","位置",2],["充電（二次電池）","電気","化学",2],
+["乾電池","化学","電気",2],["燃料電池","化学","電気",1],["ガソリン自動車","化学","運動",1],["化学かいろ","化学","熱",1],["石油ストーブ","化学","熱",1],
+["太陽光発電","光","電気",2],["光合成","光","化学",2],
+["蒸気機関車","熱","運動",2],["火力発電","熱","電気",2],["地熱発電","熱","電気",1],
+["発電機","運動","電気",2],["風力発電","運動","電気",2],["ブレーキ（摩擦）","運動","熱",2],
+["水力発電（ダム）","位置","電気",2],["ジェットコースター","位置","運動",2]];
+// 絵は icons.js の ICONS（SVG）
+const W=55,H=91; let uid=0;
+const chip=(x,y,e,r)=>`<circle cx="${x}" cy="${y}" r="${r}" fill="#fff"/><text x="${x}" y="${y+r*.48}" font-size="${r*1.25}" text-anchor="middle" font-family="${F}" font-weight="900" fill="${E[e][0]}">${E[e][1]}</text>`;
+function front([n,i,o]){
+  const id="c"+(uid++), cy=43, r=14, split=(H-cy)/H;
+  const fs=n.length>7?3.4:n.length>5?4:4.6;
+  return `<defs><linearGradient id="${id}g" gradientUnits="userSpaceOnUse" x1="0" y1="${H}" x2="0" y2="0">
+     <stop offset="0" stop-color="${E[i][0]}"/><stop offset="${split}" stop-color="${E[i][0]}"/>
+     <stop offset="${split}" stop-color="${E[o][0]}"/><stop offset="1" stop-color="${E[o][0]}"/></linearGradient>
+   <linearGradient id="${id}t" x1="0" y1="1" x2="0" y2="0"><stop offset="0" stop-color="${E[i][0]}" stop-opacity=".18"/><stop offset="1" stop-color="${E[o][0]}" stop-opacity=".18"/></linearGradient></defs>
+   <rect width="${W}" height="${H}" fill="#fff"/>
+   <rect x="23" y="${cy}" width="9" height="${74.5-cy}" rx="4.5" fill="${E[i][0]}"/>
+   <rect x="23" y="16" width="9" height="${cy-16}" fill="${E[o][0]}"/>
+   <path d="M15 24 L27.5 11.5 L40 24" stroke="${E[o][0]}" stroke-width="6.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+   <circle cx="27.5" cy="${cy}" r="${r}" fill="#fff"/><circle cx="27.5" cy="${cy}" r="${r}" fill="url(#${id}t)"/>
+   <path d="M${27.5-r} ${cy} A${r} ${r} 0 0 0 ${27.5+r} ${cy}" fill="none" stroke="${E[i][0]}" stroke-width="3.2"/><path d="M${27.5-r} ${cy} A${r} ${r} 0 0 1 ${27.5+r} ${cy}" fill="none" stroke="${E[o][0]}" stroke-width="3.2"/>
+   ${ICONS[n]?`<g transform="translate(27.5 ${cy}) scale(1.05)">${ICONS[n]}</g>`:`<text x="27.5" y="${cy+1.5}" font-size="4" text-anchor="middle" font-family="${F}" fill="#aaa">絵</text>`}
+   <text x="27.5" y="81" font-size="${fs}" text-anchor="middle" font-family="${F}" font-weight="900" fill="#1f2328">${n}</text>
+   ${chip(27.5,64,i,2.6)}${chip(27.5,22,o,2.4)}`;
+}
+// 裏面は backs.js の BACKS（?back=ring などで選ぶ）
+const back=()=>BACKS[new URLSearchParams(location.search).get("back")||"stripe"].f();
+// 縦カード(54×86)を横の枠(86×54)へ90度回して入れる。表は55×91で描いたものを0.945倍して中央に置く
+const slotSvg=inner=>`<svg viewBox="0 0 86 54" xmlns="http://www.w3.org/2000/svg"><g transform="translate(0 54) rotate(-90)">${inner}</g></svg>`;
+const pos=(k,dx=0)=>({left:19+dx+86*(k%2), top:14+54*Math.floor(k/2)});
+function page(items,guide,dx=0){
+  return `<div class="page${guide?" guide":""}">`+items.map((s,k)=>{const p=pos(k,dx);return `<div class="slot" style="left:${p.left}mm;top:${p.top}mm">${slotSvg(s)}</div>`}).join("")+`</div>`;
+}
+const q=new URLSearchParams(location.search), guide=q.has("guide");
+const all=CARDS.flatMap(c=>Array(c[3]).fill(c));
+let html="";
+// 裏面は試し刷りで右へ約1mmずれた→1mm左へ（10-09 本人）。?side=duplex は表・裏・表・裏…の交互
+const BACK_DX=-1;
+const fronts=[];
+for(let p=0;p<all.length;p+=10) fronts.push(page(all.slice(p,p+10).map(c=>`<rect width="54" height="86" fill="#fff"/><g transform="translate(1.01 0) scale(.945)">${front(c)}</g>`),guide));
+const backPage=page(Array(10).fill(0).map(back),guide,BACK_DX);
+const side=q.get("side");
+if(side==="duplex") html=fronts.map(f=>f+backPage).join("");
+else{ if(side!=="back") html+=fronts.join(""); if(side!=="front") html+=backPage; }
+document.body.innerHTML=html;
+</script>
+</body>
